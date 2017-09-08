@@ -1,0 +1,62 @@
+clear all, close all;
+
+ordning = 4;
+grd_pts = 1000; % number of grid points
+mm = grd_pts*2;
+m = grd_pts;
+e1 = [1 0];
+em = [0 1];
+rr = 0.1; % width of Gaussian
+xl = -1;  % left boundary
+xr = 1;   % right boundary
+L = xr-xl;  % lenngth of interval
+x = linspace(xl, xr, grd_pts); % discrete x-values
+
+
+% penalty parameters
+taul = [0; 1];
+taur = [0; -1];
+
+t_end = 1.8; % end time
+t = 0;
+h = L / grd_pts; % step size
+dt = 0.1*h; % step size in time
+n_steps = round(t_end/dt);
+Val_operator_ANM; % initializing difference operator and shit..
+
+A = [0 1; 1 0]; % system matrix ~
+
+% SBP-SAT operator with Dirichlet BCs.
+PP = kron(A, D1) + kron(taul, HI)*e_1*kron(e1,e_1') - kron(taul, HI)*e_m*kron(em,e_m');
+P = dt*sparse(PP);
+
+% initializing vectors for RK4
+tmp = zeros(mm,1);
+w1 = zeros(mm,1);
+w2 = zeros(mm,1);
+w3 = zeros(mm,1);
+w4 = zeros(mm,1);
+
+
+V = zeros(mm,1);
+V_ex = zeros(mm,1);
+V(1:grd_pts) = -exp(-((x+t)/rr).^2) - exp(-((x-t)/rr).^2);
+V(grd_pts+1:mm) = -exp(-((x+t)/rr).^2) + exp(-((x-t)/rr).^2);
+err = zeros(n_steps,1);
+for i = 0:1:n_steps
+    V_ex(1:grd_pts) = exp(-((x-(L-t))/rr).^2) + exp(-((x+(L-t))/rr).^2);
+    V_ex(grd_pts+1:mm) = exp(-((x-(L-t))/rr).^2) - exp(-((x+(L-t))/rr).^2);
+    w1 = P*V;
+    temp = V + w1/2;
+    
+    w2 = P*temp;
+    temp = V + w2/2;
+    
+    w3 = P*temp;
+    temp = V + w3;
+    
+    w4 = P*temp;
+    
+    V = V + (w1 + 2*w2 + 2*w3 + w4)/6;
+end
+
