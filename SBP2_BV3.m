@@ -1,5 +1,5 @@
 %m=3; %problemstorlek
-h=1/(m-1);
+%h=1/(m-1);
 
 % Second order accurate SBP operators. Specify nummber of gripdpoints and h
 % Note that h depend on the size of the computational domain (it is not
