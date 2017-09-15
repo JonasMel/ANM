@@ -19,7 +19,9 @@ Lambda_pos = (Lambda + abs(Lambda))*0.5;
 Lambda_neg = (Lambda - abs(Lambda))*0.5;
 A_p = S*Lambda_pos/S;
 A_n = S*Lambda_neg/S;
-
+II = eye(2);
+I_u = [1 0; 0 0];
+I_l = [0 0; 0 1];
 % penalty parameters
 taul = [0; 1];
 taur = [0; -1];
@@ -55,15 +57,17 @@ for ii = 1:length(ordning_v)
         %         PP = kron(A, D1) + kron(A_n, HI*e_1*e_1') - kron(A_p, HI*e_m*e_m');
         %         P = dt*sparse(PP);
         
-        % SBP - SAT approximation for interfaced system
+%         % SBP - SAT approximation for interfaced system
 %         PP_l = kron(A, D1) + kron(taul, HI*e_1)*kron(e1, e_1')...
 %                 + kron(taur, HI*e_m)*kron(e1,e_m')...
-%                 + kron(sigmar, HI*e_m)*kron(I,e_m');
+%                 + kron(sigmar, HI*e_m)*kron(II,e_m');
 %         
 %         PP_r = kron(A, D1) + kron(taul, HI*e_1)*kron(e1, e_1')...
 %                 + kron(taur, HI*e_m)*kron(e1,e_m')...
-%                 + kron(sigmal, HI*e_1)*kron(e1,e_1');
-            
+%                 + kron(sigmal, HI*e_1)*kron(II,e_1');
+%         
+%         PP = kron(I_u, PP_l) + kron(I_l, PP_r);
+
         % initializing vectors for RK4
         tmp = zeros(mm,1);
         w1 = zeros(mm,1);
@@ -104,7 +108,7 @@ for ii = 1:length(ordning_v)
             %             ylim([-2 2]);
             %             pause(0.000001)
             %             hold
-            if k == floor(0.9*n_steps)
+            if k == floor(0.8*n_steps)
 %                                 plot(x, V(1:m), 'r', x, V_ex(1:m), 'g', x, V(m+1:mm), x, V_ex(m+1:mm))
 %                                 xlim([-1 1]);
 %                                 ylim([-2 2]);
