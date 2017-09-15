@@ -129,3 +129,5 @@ figure(2)
 plot(real(eig(PP)),imag(eig(PP)), '*');
 figure(3)
 plot(ordning_v, q, '^-.')
+xlabel('Stated order of method');
+ylabel('q');
