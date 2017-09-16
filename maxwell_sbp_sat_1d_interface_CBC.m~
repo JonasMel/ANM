@@ -10,7 +10,7 @@ e1 = [1 0];
 e2 = [0 1];
 
 t_start = 0;
-t_end = 1.8;
+t_end = 3.6;
 
 x_l = -1;
 x_r = 1;
@@ -18,15 +18,15 @@ x_0 = -0.5;
 L = x_r - x_l;
 rr = 0.1;
 
-eta_l = 2;
+eta_l = sqrt(2);
 eta_r = 1;
-T = 2*eta_l/(eta_l+eta_r);
-R = (eta_l - eta_r)/(eta_l + eta_r);
+Tan = 2*eta_l/(eta_l+eta_r);
+Ran = (eta_l - eta_r)/(eta_l + eta_r);
 A = [0 1; 1 0];
 [S, lambda] = eig(A);
 A_p = S*((lambda + abs(lambda))*0.5)/S;
 A_m = S*((lambda - abs(lambda))*0.5)/S;
-C_l = [eta_l 0; 0 1];
+C_l = [eta_l^2 0; 0 1];
 C_r = [eta_r 0; 0 1];
 I2 = eye(2);
 
@@ -51,10 +51,10 @@ Val_operator_ANM;
 Ap_Cl = C_l\A_p;
 Am_Cr = C_r\A_m;
 
-PP_l = kron(Ap_Cl, D1) + sigmar*kron(Ap_Cl, HI*e_m*e_m')...
+PP_l = kron(C_l\A, D1) + sigmar*kron(Ap_Cl, HI*e_m*e_m')...
     + kron(C_l\taul*e1, HI*e_1*e_1');
 
-PP_r = kron(Am_Cr, D1) + sigmal*kron(Am_Cr, HI*e_1*e_1')...
+PP_r = kron(C_r\A, D1) + sigmal*kron(Am_Cr, HI*e_1*e_1')...
     + kron(C_r\taur*e1, HI*e_m*e_m');
 
 
@@ -62,13 +62,14 @@ PP_r = kron(Am_Cr, D1) + sigmal*kron(Am_Cr, HI*e_1*e_1')...
 P_l = dt*sparse(PP_l);
 P_r = dt*sparse(PP_r);
 
-% IT_l = -dt*sigmar*sparse(kron(Ap_Cl, HI)*kron(I2, e_m*e_1'));
-% IT_r = -dt*sigmal*sparse(kron(Am_Cr, HI)*kron(I2, e_1*e_m'));
+IT_l = -dt*sigmar*sparse(kron(Ap_Cl, HI)*kron(I2, e_m*e_1'));
+IT_r = -dt*sigmal*sparse(kron(Am_Cr, HI)*kron(I2, e_1*e_m'));
 
-IT_l = dt*sigmar*sparse(-kron(Ap_Cl, HI))*kron(eye(2), e_m*e_1');    % Penalty data
-IT_r = dt*sigmal*sparse(-kron(Am_Cr, HI))*kron(eye(2), e_1*e_m');
+% IT_l = dt*sigmar*sparse(-kron(Ap_Cl, HI))*kron(eye(2), e_m*e_1');    % Penalty data
+% IT_r = dt*sigmal*sparse(-kron(Am_Cr, HI))*kron(eye(2), e_1*e_m');
 
-V_l = [theta_2(x_L, x_0, 0, rr) - theta_1(x_L, x_0, 0, rr); theta_2(x_L, x_0, 0, rr) + theta_1(x_L, x_0, 0, rr)];
+V_l = [theta_2(x_L, x_0, 0, rr) - theta_1(x_L, x_0, 0, rr);...
+    theta_2(x_L, x_0, 0, rr) + theta_1(x_L, x_0, 0, rr)];
 V_r = zeros(2*m,1);
 
 % Pre-allocate RK-vectors and errors
@@ -88,7 +89,7 @@ vidObj = VideoWriter('Test_1D.avi');
 open(vidObj);
 update_movie = 10; % How often to update movie
 
-for k = 1:n_steps
+for k = 1:floor(n_steps/4)
     
     w1l = P_l*V_l + IT_l*V_r;
     w1r = P_r*V_r + IT_r*V_l;
@@ -117,10 +118,17 @@ for k = 1:n_steps
     %PLOTTA SKITEN
     if mod(k, update_movie) == 0
         plot(x_L, V_l(1:m), 'b', x_L, V_l(m+1:end), 'r', ...
-            x_R, V_r(1:m), 'b', x_R, V_r(m+1:end), 'r') %, x, exact(1:m), x, exact(m+1:end))
-        ylim([-2 2])
+            x_R, V_r(1:m), 'b', x_R, V_r(m+1:end), 'r')
+        ylim([-2 2]);
+        xlim([-1 1])
         currFrame = getframe;
         writeVideo(vidObj, currFrame);
+    end
+    
+    if(abs(t-0.35)<=0.9*dt)
+        mL1 = round(0.72/h);
+        mL2 = round(0.76/h);
+        Emax = abs(min(V_l(mL1:mL2)));
     end
     
 end
@@ -135,6 +143,22 @@ close(vidObj)
 % function ic = init_cond2(x, t, rr, x_0)
 % ic = -exp(-((x+t-x_0)/rr).^2)';
 % end
+
+
+
+mL1 = ceil(0.76/h);
+mL2 = ceil(0.82/h);
+mR1 = ceil(0.36/h);
+mR2 = ceil(0.45/h);
+ELmax = abs(min(V_l(mL1:mL2)));
+ERmax=abs(min(V_r(mR1:mR2)));
+
+T = ERmax/Emax;
+R = ELmax/Emax;
+fel = abs(T-Tan);
+fel2 = abs(R-Ran);
+(fel+fel2)/2
+
 
 
 % Help functions

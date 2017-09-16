@@ -1,7 +1,7 @@
 clear all; close all;
 
 ordning_v = [2 4 6 10];
-grd_pts_v = [31 62 124 248 496];
+grd_pts_v = [31 62 124 248 496 992 1984];
 
 
 
@@ -10,7 +10,7 @@ e1 = [1 0];
 e2 = [0 1];
 
 t_start = 0;
-t_end = 3.6;
+t_end = 1.8;
 
 x_l = -1;
 x_r = 1;
@@ -18,15 +18,15 @@ x_0 = -0.5;
 L = x_r - x_l;
 rr = 0.1;
 
-eta_l = 2;
+eta_l = sqrt(2);
 eta_r = 1;
-T = 2*eta_l/(eta_l+eta_r);
-R = (eta_l - eta_r)/(eta_l + eta_r);
+Tan = 2*eta_l/(eta_l+eta_r);
+Ran = (eta_l - eta_r)/(eta_l + eta_r);
 A = [0 1; 1 0];
 [S, lambda] = eig(A);
 A_p = S*((lambda + abs(lambda))*0.5)/S;
 A_m = S*((lambda - abs(lambda))*0.5)/S;
-C_l = [eta_l 0; 0 1];
+C_l = [eta_l^2 0; 0 1];
 C_r = [eta_r 0; 0 1];
 I2 = eye(2);
 
@@ -36,13 +36,14 @@ taul = [-1; 1];
 taur = [-1; -1];
 
 t = t_start;
-ordning = ordning_v(2);
-m = grd_pts_v(3);
+for i = 3:3%length(grd_pts_v)
+ordning = ordning_v(3);
+m = grd_pts_v(i);
 h = L/(2*m - 1);
 dt = h*0.1;
 n_steps = floor(t_end/dt);
 
-%x = linspace(x_l, x_r, m);
+
 x_L = linspace(x_l, 0, m);
 x_R = linspace(0, x_r, m);
 
@@ -65,11 +66,10 @@ P_r = dt*sparse(PP_r);
 IT_l = -dt*sigmar*sparse(kron(Ap_Cl, HI)*kron(I2, e_m*e_1'));
 IT_r = -dt*sigmal*sparse(kron(Am_Cr, HI)*kron(I2, e_1*e_m'));
 
-% IT_l = dt*sigmar*sparse(-kron(Ap_Cl, HI))*kron(eye(2), e_m*e_1');    % Penalty data
-% IT_r = dt*sigmal*sparse(-kron(Am_Cr, HI))*kron(eye(2), e_1*e_m');
+
 
 V_l = [theta_2(x_L, x_0, 0, rr) - theta_1(x_L, x_0, 0, rr);...
-        theta_2(x_L, x_0, 0, rr) + theta_1(x_L, x_0, 0, rr)];
+    theta_2(x_L, x_0, 0, rr) + theta_1(x_L, x_0, 0, rr)];
 V_r = zeros(2*m,1);
 
 % Pre-allocate RK-vectors and errors
@@ -111,7 +111,7 @@ for k = 1:n_steps
     
     V_l = V_l + (w1l + 2*w2l + 2*w3l + w4l)/6;
     V_r = V_r + (w1r + 2*w2r + 2*w3r + w4r)/6;
-    %V_l(1)
+
     
     t = t+dt;
     
@@ -125,18 +125,17 @@ for k = 1:n_steps
         writeVideo(vidObj, currFrame);
     end
     
+
+    
 end
 close(vidObj)
 
 
+end
 
-% function ic = init_cond1(x, t, rr, x_0)
-% ic = exp(-((x-t-x_0)/rr).^2)';
-% end
-%
-% function ic = init_cond2(x, t, rr, x_0)
-% ic = -exp(-((x+t-x_0)/rr).^2)';
-% end
+
+
+
 
 
 % Help functions
@@ -149,6 +148,13 @@ theta = -exp(-((x - x0 + t)/rr).^2)';
 end
 
 
+% function ic = init_cond1(x, t, rr, x_0)
+% ic = exp(-((x-t-x_0)/rr).^2)';
+% end
+%
+% function ic = init_cond2(x, t, rr, x_0)
+% ic = -exp(-((x+t-x_0)/rr).^2)';
+% end
 
 
 
