@@ -1,7 +1,7 @@
 clear all, close all;
 
-ordning_v =  [2 4 6 10];
-grd_pts_v = [31 62 124 248 496]; % number of grid points
+ordning_v =  2;%[2 4 6 10];
+grd_pts_v = 400;%[31 62 124 248 496]; % number of grid points
 
 % e1_4 = [1 0 0 0];
 % e2_4 = [0 1 0 0];
@@ -26,7 +26,7 @@ I_l = [0 0; 0 1];
 taul = [0; 1];
 taur = [0; -1];
 
-t_end = 1.8; % end time
+t_end = 1*1.8; % end time
 err_E = zeros(length(grd_pts_v),length(ordning_v));
 err_H = zeros(length(grd_pts_v),length(ordning_v));
 q = zeros(length(ordning_v),1);
@@ -34,12 +34,12 @@ h_v = zeros(1, length(grd_pts_v));
 
 for ii = 1:length(ordning_v)
     ordning = ordning_v(ii);
-    for jj = 1:length(grd_pts_v)
-        grd_pts = grd_pts_v(jj);
+    for jj = 1:22
+        grd_pts = grd_pts_v(1);
         t = 0;
         h = L / (grd_pts-1); % step size
         h_v(jj) = h;
-        dt = 0.1*h; % step size in time
+        dt = jj*0.1*h; % step size in time
         x = linspace(xl, xr, grd_pts); % discrete x-values
         mm = grd_pts*2;
         m = grd_pts;
@@ -54,8 +54,8 @@ for ii = 1:length(ordning_v)
         P = dt*sparse(PP);
         
         % SBP = -SAT approximation for characteristic
-        %         PP = kron(A, D1) + kron(A_n, HI*e_1*e_1') - kron(A_p, HI*e_m*e_m');
-        %         P = dt*sparse(PP);
+%                 PP = kron(A, D1) + kron(A_n, HI*e_1*e_1') - kron(A_p, HI*e_m*e_m');
+%                 P = dt*sparse(PP);
         
 %         % SBP - SAT approximation for interfaced system
 %         PP_l = kron(A, D1) + kron(taul, HI*e_1)*kron(e1, e_1')...
@@ -85,7 +85,7 @@ for ii = 1:length(ordning_v)
         V_ex(grd_pts+1:mm) = exp(-((x-(L-t))/rr).^2) - exp(-((x+(L-t))/rr).^2);
         
         
-        for k = 1:1:n_steps
+        for k = 1:1:7000
             
             w1 = P*V;
             temp = V + w1/2;
@@ -103,31 +103,35 @@ for ii = 1:length(ordning_v)
             
             V_ex(1:grd_pts) = exp(-((x-(L-t))/rr).^2) + exp(-((x+(L-t))/rr).^2);
             V_ex(grd_pts+1:mm) = exp(-((x-(L-t))/rr).^2) - exp(-((x+(L-t))/rr).^2);
-            %             plot(x, V(1:m), 'r', x, V_ex(1:m), 'g', x, V(m+1:mm), x, V_ex(m+1:mm))
-            %             xlim([-1 1]);
-            %             ylim([-2 2]);
-            %             pause(0.000001)
-            %             hold
-            if k == floor(0.8*n_steps)
+            
+            if (mod(k,40) == 0)
+                        figure(1)
+                        plot(x, V(1:m), 'r', x, V_ex(1:m), 'g', x, V(m+1:mm), x, V_ex(m+1:mm))
+                        xlim([-1 1]);
+                        ylim([-2 2]);
+                        pause(0.000001)
+                        hold
+            end
+            if k == floor(1*n_steps)
 %                                 plot(x, V(1:m), 'r', x, V_ex(1:m), 'g', x, V(m+1:mm), x, V_ex(m+1:mm))
 %                                 xlim([-1 1]);
 %                                 ylim([-2 2]);
 %                                 pause(0.000001)
 %                                 hold
-                err_E(jj,ii) = sqrt(h)*norm(V(1:m) - V_ex(1:m));
-                err_H(jj,ii) = sqrt(h)*norm(V(m+1:mm) - V_ex(m+1:mm));
+                 err_E(jj,ii) = sqrt(h)*norm(V(1:m) - V_ex(1:m))
+%                 err_H(jj,ii) = sqrt(h)*norm(V(m+1:mm) - V_ex(m+1:mm));
             end
         end
         
     end
-    q(ii,1) = log10(err_E(1,ii)/err_E(end,ii))...
-        /log10(grd_pts_v(1)/grd_pts_v(end));
+%     q(ii,1) = log10(err_E(1,ii)/err_E(end,ii))...
+%         /log10(grd_pts_v(1)/grd_pts_v(end));
     
 end
 
-figure(2)
-plot(real(eig(PP)),imag(eig(PP)), '*');
-figure(3)
-plot(ordning_v, q, '^-.')
-xlabel('Stated order of method');
-ylabel('q');
+% figure(2)
+% plot(real(eig(PP)),imag(eig(PP)), '*');
+% figure(3)
+% plot(ordning_v, q, '^-.')
+% xlabel('Stated order of method');
+% ylabel('q');

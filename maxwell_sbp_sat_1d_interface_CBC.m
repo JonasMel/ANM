@@ -36,12 +36,12 @@ taul = [-1; 1];
 taur = [-1; -1];
 
 t = t_start;
-for i = 3:3%length(grd_pts_v)
+for i = 1:length(grd_pts_v)
 ordning = ordning_v(3);
 m = grd_pts_v(i);
 h = L/(2*m - 1);
 dt = h*0.1;
-n_steps = floor(t_end/dt);
+n_steps = round(((0.5/(1/eta_l))/dt) + (0.5/(1/eta_r))/dt);
 
 
 x_L = linspace(x_l, 0, m);
@@ -87,9 +87,10 @@ w4r = zeros(2*m, 1);      % Step 4 vector in RK4
 % Setup video
 vidObj = VideoWriter('Test_1D.avi');
 open(vidObj);
-update_movie = 10; % How often to update movie
+update_movie = 100; % How often to update movie
 
 for k = 1:n_steps
+   
     
     w1l = P_l*V_l + IT_l*V_r;
     w1r = P_r*V_r + IT_r*V_l;
@@ -128,13 +129,15 @@ for k = 1:n_steps
 
     
 end
+  Tex(i) = abs(min(V_r(1:m)));
+  Rex(i) = abs(min(V_l(1:m)));
 close(vidObj)
 
 
 end
 
-
-
+T_err = abs(Tan - Tex);
+R_err = abs(Ran - Rex);
 
 
 
