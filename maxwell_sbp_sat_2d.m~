@@ -1,7 +1,7 @@
 clear all; close all;
 
 ordning_v= [2 4 6 10];
-grd_pts_v = [20 30 40 50 60 70];
+grd_pts_v =[21 31 41 51 61 71];
 
 
 e1 = [1 0 0];
@@ -19,7 +19,7 @@ L = xr - xl;
 area = L^2;
 
 t_start = 0;
-t_end = 2%1.8;
+t_end = 0.5*1.8;
 
 
 A = [0 0 0; 0 0 -1; 0 -1 0];
@@ -44,32 +44,32 @@ for j = 1 : length(ordning_v)
         
         Val_operator_ANM;
         I_m = eye(m);
-        %     Dx = kron(D1, I_m);
-        %     Dy = kron(I_m, D1);
+        Dx = kron(D1, I_m);
+        Dy = kron(I_m, D1);
         Hx = kron(H, I_m);
         Hy = kron(I_m, H);
-        %     HIx = inv(Hx);
-        %     HIy = inv(Hy);
+        HIx = inv(Hx);
+        HIy = inv(Hy);
         H = Hx*Hy;
-        %     ew = kron(e_1, I_m);
-        %     ee = kron(e_m, I_m);
-        %     es = kron(I_m, e_1);
-        %     en = kron(I_m, e_m);
+        ew = kron(e_1, I_m);
+        ee = kron(e_m, I_m);
+        es = kron(I_m, e_1);
+        en = kron(I_m, e_m);
         
         
-        %     satw = kron(tauw, HIx)*ew*kron(e2, ew');
-        %     sate = kron(taue, HIx)*ee*kron(e2, ee');
-        %     sats = kron(taus, HIy)*es*kron(e2, es');
-        %     satn = kron(taun, HIy)*en*kron(e2, en');
-        PP = kron(A, kron(D1, I_m)) + kron(B, kron(I_m, D1))...
-            + kron(tauw, inv(Hx))*kron(e_1, I_m)*kron(e2, kron(e_1, I_m)')...
-            + kron(taue, inv(Hx))*kron(e_m, I_m)*kron(e2, kron(e_m, I_m)')...
-            + kron(taus, inv(Hy))*kron(I_m, e_1)*kron(e2, kron(I_m, e_1)')...
-            + kron(taun, inv(Hy))*kron(I_m, e_m)*kron(e2, kron(I_m, e_m)');
+        satw = kron(tauw, HIx)*ew*kron(e2, ew');
+        sate = kron(taue, HIx)*ee*kron(e2, ee');
+        sats = kron(taus, HIy)*es*kron(e2, es');
+        satn = kron(taun, HIy)*en*kron(e2, en');
+%         PP = kron(A, kron(D1, I_m)) + kron(B, kron(I_m, D1))...
+%             + kron(tauw, inv(kron(H, I_m)))*kron(e_1, I_m)*kron(e2, kron(e_1, I_m)')...
+%             + kron(taue, inv(kron(H, I_m)))*kron(e_m, I_m)*kron(e2, kron(e_m, I_m)')...
+%             + kron(taus, inv(kron(I_m, H)))*kron(I_m, e_1)*kron(e2, kron(I_m, e_1)')...
+%             + kron(taun, inv(kron(I_m, H)))*kron(I_m, e_m)*kron(e2, kron(I_m, e_m)');
         
-        %     PP = kron(A, Dx) + kron(B, Dy) + satw + sate + sats + satn;
+            PP = kron(A, Dx) + kron(B, Dy) + satw + sate + sats + satn;
         P = dt*sparse(PP);
-        
+        PP = 0;
         V = [zeros(m*m,1); init_cond1(x, x0, y, y0, rr); zeros(m*m,1)];
         
         temp = zeros(3*m*m, 1);    % Temporary vector in RK4
@@ -100,25 +100,29 @@ for j = 1 : length(ordning_v)
             
             t = t + dt;
             % Plot
-            if mod(k,15) == 0
-                s = surf(x, y, [Vmat_1 Vmat_2 );
+            if mod(k,5) == 0
+                figure(1);
+                s = surf(x, y, (Vmat_1+Vmat_3));
                 s.EdgeColor = 'none';
                 xlim([-1 1])
                 ylim([-1 1])
                 zlim([-1 1])
-                pause(0.001)
+                pause(0.00001)
             end
         end
         theta_n(i) = sqrt((kron(D1, I_m)*V(1:m*m)...
-            +kron(I_m, D1)*V(2*m*m+1:3*m*m))'*H*(kron(D1, I_m)*V(1:m*m)...
+            +kron(I_m, D1)*V(2*m*m+1:3*m*m))'*(kron(H, I_m)*kron(I_m, H))*(kron(D1, I_m)*V(1:m*m)...
             +kron(I_m, D1)*V(2*m*m+1:3*m*m)));
     end
     q(j) = log10(theta_n(1)/theta_n(end))...
         /log10(grd_pts_v(end)/grd_pts_v(1));
 end
 
+figure(2);
+plot(ordning_v, q, '*');
+xlabel('order of method');
+ylabel('q')
 
-plot(ordning_v, q);
 
 function ic = init_cond1(x, x_0, y, y_0, rr)
 mm = length(x);
